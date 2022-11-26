@@ -5,6 +5,8 @@ import com.cqsd.command.utils.builder.Builder;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * @author caseycheng
@@ -24,7 +26,9 @@ public class PageObject
 	
 	public PageObject(Object... objects) {
 		super();
-		System.out.println(Arrays.toString(objects));
+		final var params = Builder.getParams(objects);
+		final var o = params.get(String.class);
+		System.out.println(o);
 	}
 	
 	public static PageObject of(Integer code,
