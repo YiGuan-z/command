@@ -1,11 +1,12 @@
 package com.cqsd.command.utils.builder;
 
-import com.cqsd.command.utils.builder.type.args.InjectComsumerArgs;
-import com.cqsd.command.utils.builder.type.args.InjectsConsumer2;
-import com.cqsd.command.utils.builder.type.args.InjectsConsumer3;
-import com.cqsd.command.utils.builder.type.constructor.Const;
-import com.cqsd.command.utils.builder.type.constructor.Constructor;
-import com.cqsd.command.utils.builder.type.constructor.ConstructorArgs;
+import com.cqsd.command.utils.Assert;
+import com.cqsd.command.utils.builder.interfaces.args.InjectComsumerArgs;
+import com.cqsd.command.utils.builder.interfaces.args.InjectsConsumer2;
+import com.cqsd.command.utils.builder.interfaces.args.InjectsConsumer3;
+import com.cqsd.command.utils.builder.interfaces.constructor.Const;
+import com.cqsd.command.utils.builder.interfaces.constructor.Constructor;
+import com.cqsd.command.utils.builder.interfaces.constructor.ConstructorArgs;
 
 import java.util.*;
 import java.util.function.Consumer;
@@ -89,6 +90,7 @@ final public class Builder<T> {
 	/**
 	 * 通过参数列表获取参数
 	 * 有问题，因为class会重复
+	 *
 	 * @param args 需要转换的参数列表
 	 * @return 一个参数类型和参数值组成的map
 	 */
@@ -100,25 +102,28 @@ final public class Builder<T> {
 	
 	/**
 	 * 通过参数列表和参数类型来获取一个参数列表
-	 * @param t 参数类型
+	 * 可能返回为空
+	 *
+	 * @param t    参数类型
 	 * @param args 通过Builder获取的参数列表，需要在构造函数里创建Object...的构造
+	 * @param <T>  参数类型
 	 * @return 获取的参数列表
-	 * @param <T> 参数类型
 	 */
 	public static <T> List<Object> getParams(Class<T> t, Object... args) {
 		final var list = List.of(args);
-         		return list.stream()
-				.filter(ar -> ar.getClass() == t).toList();
+		final var ret = list.stream()
+				.filter(ar -> ar.getClass() == t).collect(Collectors.toList());
+		return ret.size() == 0 ? null : ret;
 	}
 	
 	/**
 	 * 提供set方法来创建操作列表
+	 *
 	 * @param consumer set方法
-	 * @param p 参数类型
+	 * @param p        参数类型
+	 * @param <P>      参数
 	 * @return Builder
-	 * @param <P> 参数
 	 */
-	
 	public <P> Builder<T> with(final InjectsConsumer2<T, P> consumer,
 							   final P p) {
 		final Consumer<T> c = instance -> consumer.accept(instance, p);
@@ -143,6 +148,7 @@ final public class Builder<T> {
 		this.Injects.add(c);
 		return this;
 	}
+	
 	//如果表达式为true就添加到list操作列表里 K V
 	public <K, V> Builder<T> with(boolean express,
 								  final InjectsConsumer3<T, K, V> consumer,
@@ -150,6 +156,7 @@ final public class Builder<T> {
 								  final V v) {
 		return express ? with(consumer, k, v) : this;
 	}
+	
 	//如果表达式未true就添加到list操作列表中，多个参数
 	public Builder<T> with(boolean express,
 						   final InjectComsumerArgs<T> comsumerArgs,
@@ -157,25 +164,31 @@ final public class Builder<T> {
 		return express ? with(comsumerArgs, args) : this;
 	}
 	
+	/**
+	 * 这个方法或许不应该来查看jdk版本，现在它就是jdk19的预览特性
+	 *
+	 * @return
+	 */
 	public T builder() {
 		//在对象初始化后 instance现在才被确定
 		//在这里选择构造函数对象
 		T instanceObj = null;
-		if (isJDK19) {
-			switch (this.constructor) {
-				case ConstructorArgs<T> constru -> instanceObj = constru.get(constructorArgs);
-				case Constructor<T> constru -> instanceObj = constru.get();
-				case null -> throw new RuntimeException("没有选择构造器");
-				case default -> throw new RuntimeException("方法未实现");
-			}
-		} else {
-			if (this.constructor instanceof ConstructorArgs<T> constructorArgs) {
-				instanceObj = constructorArgs.get(this.constructorArgs);
-			} else if (this.constructor instanceof Constructor<T> constructor) {
-				instanceObj = constructor.get();
-			} else {
-				throw new RuntimeException("没有选择构造器");
-			}
+		// JDK19
+//		switch (this.constructor) {
+//			case ConstructorArgs<T> constru -> instanceObj = constru.get(constructorArgs);
+//			case Constructor<T> constru -> instanceObj = constru.get();
+//			case null -> throw new RuntimeException("没有选择构造器");
+//			case default -> throw new RuntimeException("方法未实现");
+//		}
+		//JDK 11
+		Assert.requireNotNull(this.constructor, "没有选择构造器");
+		if (this.constructor instanceof ConstructorArgs) {
+			instanceObj = ((ConstructorArgs<T>) this.constructor).get(constructorArgs);
+		} else if (this.constructor instanceof Constructor) {
+			instanceObj = ((Constructor<T>) this.constructor).get();
+		}else {
+			Assert.assertFalse(this.constructor,(c)->c instanceof Const,"方法未实现");
+			throw new RuntimeException("方法未实现");
 		}
 		final T instance = instanceObj;
 		Injects.forEach(inject -> inject.accept(instance));

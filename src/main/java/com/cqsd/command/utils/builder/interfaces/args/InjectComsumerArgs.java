@@ -1,4 +1,4 @@
-package com.cqsd.command.utils.builder.type.args;
+package com.cqsd.command.utils.builder.interfaces.args;
 
 /**
  * 用于不限制参数的方法

@@ -63,8 +63,8 @@ public final class JsonObject
 	public boolean equals(Object o) {
 		if (o == this)
 			return true;
-		if (o instanceof Map<?, ?> m) {
-			return map.equals(m);
+		if (o instanceof Map<?, ?>) {
+			return map.equals(o);
 		}
 		return false;
 	}

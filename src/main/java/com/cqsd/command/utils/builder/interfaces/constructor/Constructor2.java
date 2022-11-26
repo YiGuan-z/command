@@ -1,4 +1,4 @@
-package com.cqsd.command.utils.builder.type.constructor;
+package com.cqsd.command.utils.builder.interfaces.constructor;
 
 /**
  * 双参构造
