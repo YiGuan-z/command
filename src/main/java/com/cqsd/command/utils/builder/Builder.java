@@ -10,6 +10,7 @@ import com.cqsd.command.utils.builder.interfaces.constructor.ConstructorArgs;
 
 import java.util.*;
 import java.util.function.Consumer;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 /**
@@ -187,7 +188,7 @@ final public class Builder<T> {
 		} else if (this.constructor instanceof Constructor) {
 			instanceObj = ((Constructor<T>) this.constructor).get();
 		}else {
-			Assert.assertFalse(this.constructor,(c)->c instanceof Const,"方法未实现");
+			Assert.assertFalse(this.constructor, c -> c instanceof Const,"方法未实现");
 			throw new RuntimeException("方法未实现");
 		}
 		final T instance = instanceObj;

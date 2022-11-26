@@ -78,7 +78,7 @@
         <repository>
             <id>github</id>
             <name>GitHub OWNER Apache Maven Packages</name>
-            <url>https://maven.pkg.github.com/YiGuan-z/center</url>
+            <url>https://maven.pkg.github.com/YiGuan-z/command</url>
         </repository>
 
     </distributionManagement>
